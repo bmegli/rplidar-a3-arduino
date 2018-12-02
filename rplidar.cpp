@@ -16,10 +16,10 @@
  * - ScanRequestTx -> ScanMeasurementRx
  * - ScanMeasurementRx -> ScanMeasurementRx 
  * 
- * State transition 								[triggering condition]
+ * State transition                                 [triggering condition]
  * ----------------------------------------------------------------------
  *
- * Idle	-> ScanRequestTx							[user startScan call]
+ * Idle	-> ScanRequestTx                            [user startScan call]
  * 
  * ScanRequestTx -> ScanMeasurementRx
  * 
@@ -157,7 +157,6 @@ void RPLidar::encodeExpressScan(uint8_t mode)
 	m_tx_buffer[8]=calculateCrc(m_tx_buffer, 8); //crc
 	m_tx_bytes=9;
 	m_tx_sent=0;
-
 }
 
 void RPLidar::start()

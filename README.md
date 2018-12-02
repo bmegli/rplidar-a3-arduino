@@ -75,7 +75,7 @@ If you want to add the decoding:
 - raw packets correspond to [rplidar_response_ultra_capsule_measurement_nodes_t](https://github.com/Slamtec/rplidar_sdk/blob/8291e232af614842447a634b6dbd725b81f24713/sdk/sdk/include/rplidar_cmd.h#L197) in [rplidar_sdk](https://github.com/Slamtec/rplidar_sdk)
 - decoding should do the same as [_ultraCapsuleToNormal](https://github.com/Slamtec/rplidar_sdk/blob/master/sdk/sdk/src/rplidar_driver.cpp#L1071) in [rplidar_sdk](https://github.com/Slamtec/rplidar_sdk)
 
-rplidar_sdk needs 2 consecutive packets to do the decoding. Peeking into the SDK code you may probably dedcode everything but the last reading (or 4 readings) without the second packet.
+rplidar_sdk needs 2 consecutive packets to do the decoding. Peeking into the SDK code you may probably decode everything but the last reading (or 4 readings) without the second packet.
 
 For checking if the packets follow one another use the `sequence` field returned by the library (e.g. i, i+1 or uint8_t max, 0.
 
