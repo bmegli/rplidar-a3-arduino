@@ -44,8 +44,13 @@ struct ResponseDescriptor
 class RPLidar
 {
 	enum State {Idle, 
+				HealthRequestTx, HealthRequestRx,
+				ResetRequestTx, ResetRequestDelay,
 				ScanRequestTx, ScanMeasurementRx,
-				StopRequestTx, StopRequestDelay};				
+				ScanTimeoutHealthRequestTx, ScanTimeoutHealthRequestRx,
+				StopRequestTx, StopRequestDelay, 
+				CommunicationError, HardwareFailure, CheckMotor};
+				
 	enum DescriptorState { DescriptorNotAwaiting, DescriptorStartFlag1, DescriptorStartFlag2, DescriptorBytes };
 	enum MeasurementState { MeasurementNotAwaiting, MeasurementStartFlag1, MeasurementStartFlag2, MeasurementBytes };
 
@@ -56,7 +61,8 @@ public:
 	RPLidar(HardwareSerial &serial, int pwm_pin);
 	void setup(int motor_rpm);	
 	void start();
-		
+	
+	
 	/* Cyclic */
 	bool processAvailable(RPLidarPacket *packet);
 private:
@@ -64,8 +70,12 @@ private:
 	
 	bool readDescriptor();
 	bool readMeasurementData();
+	void readData();
+	bool readPending();
 
 	/* States */
+	void OnHealthRequestTx();
+	void OnHealthRequestRx();
 	void OnScanRequestTx();
 	bool OnScanMeasurermentRx(RPLidarPacket *packet);
 
@@ -77,6 +87,7 @@ private:
 	uint8_t calculateCrc(const uint8_t *data, const int bytes);
 	bool checkMeasurementCrc();
 	
+	void encodeGetHealth();
 	void encodeExpressScan(uint8_t mode);
 
 	void decodeResponseDescriptor();

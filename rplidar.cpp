@@ -19,10 +19,38 @@
  * State transition 								[triggering condition]
  * ----------------------------------------------------------------------
  *
- * Idle	-> ScanRequestTx							[user startScan call]
+ * Idle	-> HealthRequestTx							[user startScan call]
+ * 
+ * HealthRequestTx -> HealthRequestRx
+ *  
+ * HealthRequestRx -> CommunicationError			[timeout]
+ * HealthRequestRx -> ResetRequestTx 				[protection stop, first failure)
+ * HealthRequestRx -> HardwareFailure 				[protection stop, second failure)
+ * HealthRequestRx -> HealthRequestRx				[got descriptor, awaiting_descriptor=false]
+ * HealthRequestRx -> ScanRequestTx					[no protection stop]
+ * 
+ * ResetRequestTx -> ResetRequestDelay
+ * 
+ * ResetRequestDelay -> HealthRequestTx
  * 
  * ScanRequestTx -> ScanMeasurementRx
  * 
+ * ScanMeasurementRx -> CommunicationError			[timeout, awaiting_descriptor==true]
+ * ScanMeasurementRx -> ScanMeasurementRx			[got descriptor, awaiting_descriptor = false]
+ * 
+ * ScanMeasurementRx -> ScanTimeoutHealthRequestTx	[timeout]
+ * ScanMeasuermentRx -> ScanMeasuermentRx
+ * ScanMeasurementRx -> StopRequestTx				[user stop call]
+ * 
+ * ScanTimeoutHealthRequestTx -> ScanTimeoutHealthRequestRx
+ * 
+ * ScanTimeoutHealthRequestRx -> CommunicationError [timeout]
+ * ScanTimeoutHealthRequestRx -> HardwareFailure	[protection stop] 
+ * ScanTimeoutHealthRequestRx -> CheckMotor
+ * 
+ * StopRequestTx -> StopRequestDelay
+ * 
+ * StopRequestDelay -> Idle
 */
 
 /*
@@ -144,6 +172,14 @@ bool RPLidar::processAvailable(RPLidarPacket* packet)
 	return false;
 }
 
+void RPLidar::encodeGetHealth()
+{
+	m_tx_buffer[0]=StartByte1;
+	m_tx_buffer[1]=GetHealth;
+	m_tx_bytes=2;
+	m_tx_sent=0;
+}
+
 void RPLidar::encodeExpressScan(uint8_t mode)
 {
 	m_tx_buffer[0]=StartByte1;
@@ -182,6 +218,33 @@ bool RPLidar::sendData()
 	}
 	
 	return m_tx_sent == m_tx_bytes;
+}
+
+void RPLidar::OnHealthRequestTx()
+{
+	if( !sendData() )
+		return;
+			
+	m_state=HealthRequestRx;
+	m_descriptor_state=DescriptorStartFlag1;
+	m_rx_bytes=ResponseDescriptorBytes;
+	m_rx_read=0;
+}
+
+void RPLidar::OnHealthRequestRx()
+{
+	/*
+	if(m_awaiting_descriptor)
+	{
+		readData();
+		//check if got
+	}
+	*/
+	readData();
+	
+	if(readPending())
+		return;
+	
 }
 
 void RPLidar::OnScanRequestTx()
@@ -382,6 +445,21 @@ bool RPLidar::readMeasurementData()
 	return false;
 }
 
+void RPLidar::readData()
+{
+	if(!readPending())
+		return;
+		
+	while(m_rx_read < m_rx_bytes && m_serial.available())
+	{
+		m_rx_buffer[m_rx_read]=m_serial.read();
+		++m_rx_read;
+	}
+}
+bool RPLidar::readPending()
+{
+	return m_rx_read < m_rx_bytes;
+}
 uint8_t RPLidar::calculateCrc(const uint8_t *data, const int bytes)
 {
 	uint8_t crc=0;
