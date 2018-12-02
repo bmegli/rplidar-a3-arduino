@@ -19,7 +19,7 @@
  * State transition                                 [triggering condition]
  * ----------------------------------------------------------------------
  *
- * Idle	-> ScanRequestTx                            [user startScan call]
+ * Idle -> ScanRequestTx                            [user startScan call]
  * 
  * ScanRequestTx -> ScanMeasurementRx
  * 
