@@ -130,9 +130,6 @@ bool RPLidar::processAvailable(RPLidarPacket* packet)
 	{
 		case Idle:
 			break;
-		case HealthRequestTx:
-			OnHealthRequestTx();
-			break;
 		case ScanRequestTx:
 			OnScanRequestTx();
 			break;
