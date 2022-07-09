@@ -20,14 +20,13 @@ Note - this library doesn't decode the packets. It starts the lidar, controls th
 
 ## State
 
-Work in progress.
+Functional.
 
-Currently working:
+Implemented:
 - PID motor control
 - starting lidar scanning (hardcoded mode)
 - retrieveing raw measurements data (raw data of rplidar_sdk [rplidar_response_ultra_capsule_measurement_nodes_t](https://github.com/Slamtec/rplidar_sdk/blob/8291e232af614842447a634b6dbd725b81f24713/sdk/sdk/include/rplidar_cmd.h#L197))
-
-Both library interface and implementation may change.
+- timestamping on first received byte of packet
 
 ## Dependencies 
 
@@ -39,6 +38,8 @@ rpliar-a3-arduino uses [Arduino-PID-Library](https://github.com/br3ttb/Arduino-P
 - copy or clone `rplidar-a3-arduino` directory to your sketchbook `libraries` directory
 
 ## Using
+
+For real use see [cave-craler-mcu](https://github.com/bmegli/cave-crawler-mcu/blob/9520f77c4912b79599ae7788a43a596bd05ec68d/cave-crawler-mcu.ino#L75)
 
 ```C++
 #include <rplidar.h>
@@ -67,6 +68,8 @@ void loop()
 }
 ```
 
+
+
 ## Packet decoding notes
 
 As was already mentioned this library doesn't decode the packets.
@@ -77,7 +80,13 @@ If you want to add the decoding:
 
 rplidar_sdk needs 2 consecutive packets to do the decoding. Peeking into the SDK code you may probably decode everything but the last reading (or 4 readings) without the second packet.
 
-For checking if the packets follow one another use the `sequence` field returned by the library (e.g. i, i+1 or uint8_t max, 0.
+For checking if the packets follow one another use the `sequence` field returned by the library (e.g. i, i+1 or uint8_t max, 0).
+
+Working proof-of-concept: 
+- microcontroller [cave-crawler-mcu](https://github.com/bmegli/cave-crawler-mcu)
+  - using rplidar-a3-arduino library
+- communicating with PC using [cave-crawler-lib](https://github.com/bmegli/cave-crawler-lib)
+- packet data decoded on PC in [ev3dev-mapping module](https://github.com/bmegli/ev3dev-mapping-modules/blob/cave-crawler-mcu-rplidar/ccmcu/main.cpp#L179)
 
 ## License
 
